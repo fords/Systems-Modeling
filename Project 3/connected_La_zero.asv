@@ -1,0 +1,104 @@
+
+clear; close all;
+
+Kt = 7.06*10^-2;
+Ke = 7.06*10^-2;
+Ra = 0.59;
+La = 0;
+D = 1.7*10^-5;
+Jm = 4.7*10^-5;
+
+
+w_L=[];w_L(1,1)=0;
+[time_L,voltage_L,current_L,angle_L]=textread('DCM_Loaded_ModelingData_1_4v.txt');
+
+Va_load= [];
+Va_load(:,1)= time_L;
+Va_load(:,2)= voltage_L;
+
+
+for i=1:470
+    w_L(i+1,1)= (angle_L(i+1)-angle_L(i,1))/.02;
+end
+
+b1 = 5e-6:1e-5:1e-2;
+
+for i=1:length(b1)
+    
+J = b1(i)+ Jm;
+c = b1(i)+ D;
+
+SimOut = sim('Second_connected');
+
+
+k(i) = sum((w_L*pi/180 - Theta).^2);
+
+end
+
+figure(20)
+plot(b1,k);
+title('cost function for first order');
+
+ts_min = min(k);
+
+for i=1:length(b1)
+
+    if k(i)== ts_min
+    J = b1(i)+ Jm;
+    c = b1(i)+ D;
+    end
+    
+end
+
+
+SimOut = sim('Second_connected');
+
+figure(9)
+plot(Time_connected,Current_a_connected);
+hold on
+plot(time_L,current_L);
+RMS_SC_CURRENT = rms( Current_a_connected - current_L)
+
+
+
+figure(10)
+plot(Time_connected,Theta);
+hold on
+plot(time_L,w_L*pi/180);
+
+RMS_SC_W = rms( Current_a_connected - current_L)
+
+% /////////// Inertia connected - Validation data set
+
+
+w_val_L=[];w_val_L(1,1)=0;
+[time_val_L,voltage_val_L,current_val_L,angle_val_L]=textread('DCM_Loaded_ValidationData_Steps3.txt');
+
+Va_val_load= [];
+Va_val_load(:,1)= time_val_L;
+Va_val_load(:,2)= voltage_val_L;
+
+
+for i=1:511
+    w_val_L(i+1,1)= (angle_val_L(i+1)-angle_val_L(i,1))/.02;
+end
+
+
+SimOut = sim('Second_connected_val');
+
+figure(12)
+plot(Time_connected_val,Current_a_connected_val);
+hold on
+plot(time_val_L,current_val_L);
+RMS_SC_val_current = rms(Current_a_connected_val - current_val_L)
+
+
+figure(13)
+plot(Time_connected_val,Theta_val);
+hold on
+plot(time_val_L,w_val_L*pi/180);
+RMS_SC_val_w = rms(Theta_val - w_val_L*pi/180)
+
+
+
+
